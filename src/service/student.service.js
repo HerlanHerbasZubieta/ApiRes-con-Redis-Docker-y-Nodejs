@@ -75,6 +75,25 @@ class StudentService {
       console.error("Error deleting student", error);
     }
   }
+
+  async modifyStudentById(id, updateStudent){
+    try {
+      const client = await initClient();
+      const key = `student_${id}`;
+      const getAsync = promisify(client.get).bind(key);
+      const student = await getAsync(key);
+      if(!student){
+        console.error("Error getting student");
+        return false;
+      }
+      const parsedStudent = JSON.parse(student);
+      const mergedStudent = {...parsedStudent,  ...updateStudent};
+      await client.set(key, JSON.stringify(mergedStudent));
+      return mergedStudent;
+    } catch (error) {
+      console.error("Error updating student", error);
+    }
+  }
 }
 
 module.exports = new StudentService();

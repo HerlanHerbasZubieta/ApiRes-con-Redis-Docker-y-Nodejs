@@ -1,13 +1,18 @@
 const Student = require("../model/student.model");
 const initClient = require("./initClient");
 const { promisify } = require("util");
+const { hashPassword } = require('../common/bcrypt');
 
 class StudentService {
   async createStudent(student) {
     try {
       const client = await initClient();
-      const key = `student_${student.id}`;
-      await client.set(key, JSON.stringify(student));
+      const id = student.id || await getNextId();
+      const hashedPassword = await hashPassword(student.password);
+      student.password = hashedPassword;
+      student.id = id;
+      const serializedStudent = JSON.stringify(student);
+      await client.set(`student_${id}`, serializedStudent);
       return student;
     } catch (error) {
       console.error("Error creating student:", error);

@@ -14,7 +14,7 @@ class StudentService {
     }
   }
 
-  async getAll() {
+  async getAllStudents() {
     const client = await initClient();
     const students = [];
 
@@ -32,6 +32,23 @@ class StudentService {
     } catch (error) {
       console.error("Error retrieving students:", error);
       throw error;
+    }
+  }
+
+  async getStudentById(id) {
+    try {
+      const client = await initClient();
+      const key = `student_${id}`;
+      const serializedStudent = await client.get(key);
+
+      if(!serializedStudent){
+        return null;
+      }
+
+      const student = JSON.parse(serializedStudent);
+      return student;
+    } catch (error) {
+      console.error("Error getting student", error);
     }
   }
 }

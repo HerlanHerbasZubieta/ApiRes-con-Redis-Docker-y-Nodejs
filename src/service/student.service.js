@@ -1,4 +1,3 @@
-const { error } = require("console");
 const Student = require("../model/student.model");
 const initClient = require("./initClient");
 const { promisify } = require("util");
@@ -77,14 +76,15 @@ class StudentService {
       const getAsync = promisify(client.get).bind(key);
       const student = await getAsync(key);
       if(!student){
-        return {error: 'Student not found'};
+        console.error("Error getting student");
+        return false;
       }
       const parsedStudent = JSON.parse(student);
       const mergedStudent = {...parsedStudent,  ...updateStudent};
       await client.set(key, JSON.stringify(mergedStudent));
       return mergedStudent;
     } catch (error) {
-      return {error: "Internal Server Error"};
+      console.error("Error updating student", error);
     }
   }
 }

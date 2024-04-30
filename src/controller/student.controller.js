@@ -50,4 +50,20 @@ router.delete('/:id', async (req, res) => {
   }
 })
 
+router.put('/:id', async (req, res) => {
+  const studentId = req.params.id;
+  const updateStudent = req.body;
+
+  try {
+    const student = await studentService.modifyStudentById(studentId, updateStudent);
+
+    if(!student){
+      return res.status(404).json({error: 'Student not found'});
+    }
+    res.json(student);
+  } catch (error) {
+    res.status(500).json({error: error.message});
+  }
+})
+
 module.exports = router;

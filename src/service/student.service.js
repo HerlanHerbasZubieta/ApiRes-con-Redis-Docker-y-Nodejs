@@ -1,3 +1,4 @@
+const { error } = require("console");
 const Student = require("../model/student.model");
 const initClient = require("./initClient");
 const { promisify } = require("util");
@@ -66,6 +67,24 @@ class StudentService {
       return true;
     } catch (error) {
       console.error("Error deleting student", error);
+    }
+  }
+
+  async modifyStudentById(id, updateStudent){
+    try {
+      const client = await initClient();
+      const key = `student_${id}`;
+      const getAsync = promisify(client.get).bind(key);
+      const student = await getAsync(key);
+      if(!student){
+        return {error: 'Student not found'};
+      }
+      const parsedStudent = JSON.parse(student);
+      const mergedStudent = {...parsedStudent,  ...updateStudent};
+      await client.set(key, JSON.stringify(mergedStudent));
+      return mergedStudent;
+    } catch (error) {
+      return {error: "Internal Server Error"};
     }
   }
 }

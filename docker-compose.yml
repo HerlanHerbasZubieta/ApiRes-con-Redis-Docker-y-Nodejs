@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  redis_server:
+    container_name: redis_image
+    image: redis:7.2
+    volumes:
+      - ./redis:/data/db
+    ports:
+      - 6379:6379
+  nodejs_redis:
+    container_name: nodejs_image
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis_server
+    

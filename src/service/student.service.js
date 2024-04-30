@@ -39,9 +39,11 @@ class StudentService {
     try {
       const client = await initClient();
       const key = `student_${id}`;
-      const serializedStudent = await client.get(key);
+      const getAsync = promisify(client.get).bind(client);
+      const serializedStudent = await getAsync(key)
 
-      if(!serializedStudent){
+      if (!serializedStudent) {
+        console.error(`Student with ID ${id} not found in Redis`);
         return null;
       }
 

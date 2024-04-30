@@ -53,6 +53,23 @@ class StudentService {
       console.error("Error getting student", error);
     }
   }
+
+  async deleteStudentById(id){
+    try {
+      const client = await initClient();
+      const key = `student_${id}`;
+      const delAsync = promisify(client.del).bind(client);
+      const deleted = await delAsync(key);
+
+      if (!deleted) {
+        console.error(`Student with id ${id} not found in Redis`);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Error deleting student", error);
+    }
+  }
 }
 
 module.exports = new StudentService();

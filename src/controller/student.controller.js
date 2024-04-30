@@ -36,4 +36,18 @@ router.get('/:id', async (req, res) => {
   }
 })
 
+router.delete('/:id', async (req, res) => {
+  const studentId = req.params.id;
+
+  try {
+    const student = await studentService.deleteStudentById(studentId);
+    if (!student) {
+      return res.status(400).json({error: 'Student not deleted'});  
+    }
+    res.json({message: 'Student deleted successfully'});
+  } catch (error) {
+    res.status(500).json({error: 'Error while deleting student'});
+  }
+})
+
 module.exports = router;

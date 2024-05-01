@@ -1,16 +1,18 @@
 const Student = require("../model/student.model");
 const initClient = require("./initClient");
 const { promisify } = require("util");
-const { hashPassword } = require('../common/bcrypt');
+const { hashPassword, comparePassword } = require("../common/bcrypt");
+const moment = require("moment");
 
 class StudentService {
   async createStudent(student) {
     try {
       const client = await initClient();
-      const id = student.id || await getNextId();
+      const id = student.id || (await getNextId());
       const hashedPassword = await hashPassword(student.password);
       student.password = hashedPassword;
       student.id = id;
+      student.createdAt = moment(student.createdAt).format('YYYY-MM-DD HH:mm:ss');
       const serializedStudent = JSON.stringify(student);
       await client.set(`student_${id}`, serializedStudent);
       return student;
@@ -45,7 +47,7 @@ class StudentService {
       const client = await initClient();
       const key = `student_${id}`;
       const getAsync = promisify(client.get).bind(client);
-      const serializedStudent = await getAsync(key)
+      const serializedStudent = await getAsync(key);
 
       if (!serializedStudent) {
         console.error(`Student with ID ${id} not found in Redis`);
@@ -59,7 +61,7 @@ class StudentService {
     }
   }
 
-  async deleteStudentById(id){
+  async deleteStudentById(id) {
     try {
       const client = await initClient();
       const key = `student_${id}`;
@@ -76,18 +78,19 @@ class StudentService {
     }
   }
 
-  async modifyStudentById(id, updateStudent){
+  async modifyStudentById(id, updateStudent) {
     try {
       const client = await initClient();
       const key = `student_${id}`;
       const getAsync = promisify(client.get).bind(key);
       const student = await getAsync(key);
-      if(!student){
+      if (!student) {
         console.error("Error getting student");
         return false;
       }
       const parsedStudent = JSON.parse(student);
-      const mergedStudent = {...parsedStudent,  ...updateStudent};
+      const mergedStudent = { ...parsedStudent, ...updateStudent };
+      mergedStudent.updatedAt = moment(mergedStudent.updatedAt).format('YYYY-MM-DD HH:mm:ss');
       await client.set(key, JSON.stringify(mergedStudent));
       return mergedStudent;
     } catch (error) {

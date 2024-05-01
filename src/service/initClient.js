@@ -8,7 +8,6 @@ const getClient = async () => {
   if (!client) {
     client = await createClient({
       url: `redis://${REDIS_HOST}:${REDIS_PORT}`,
-      legacyMode: true,
     })
       .on("error", (err) => console.log("Redis Client Error", err))
       .connect();

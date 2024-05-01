@@ -11,6 +11,8 @@ services:
   nodejs_redis:
     container_name: nodejs_image
     build: .
+    volumes:
+      - .:/app
     ports:
       - "5000:5000"
     depends_on:

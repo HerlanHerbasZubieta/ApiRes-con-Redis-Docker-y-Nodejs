@@ -1,13 +1,12 @@
 const Student = require("../model/student.model");
 const initClient = require("./initClient");
-const { promisify } = require("util");
-const { hashPassword } = require('../common/bcrypt');
+const { hashPassword } = require("../common/bcrypt");
 
 class StudentService {
   async createStudent(student) {
     try {
       const client = await initClient();
-      const id = student.id || await getNextId();
+      const id = student.id || (await getNextId());
       const hashedPassword = await hashPassword(student.password);
       student.password = hashedPassword;
       student.id = id;
@@ -24,11 +23,9 @@ class StudentService {
     const students = [];
 
     try {
-      const keysAsync = promisify(client.keys).bind(client);
-      const keys = await keysAsync("student*");
+      const keys = await client.keys("student_*");
       for (const key of keys) {
-        const getAsync = promisify(client.get).bind(client);
-        const data = await getAsync(key);
+        const data = await client.get(key);
         if (data) {
           students.push(new Student(...Object.values(JSON.parse(data))));
         }
@@ -44,8 +41,7 @@ class StudentService {
     try {
       const client = await initClient();
       const key = `student_${id}`;
-      const getAsync = promisify(client.get).bind(client);
-      const serializedStudent = await getAsync(key)
+      const serializedStudent = await client.get(key);
 
       if (!serializedStudent) {
         console.error(`Student with ID ${id} not found in Redis`);
@@ -59,12 +55,11 @@ class StudentService {
     }
   }
 
-  async deleteStudentById(id){
+  async deleteStudentById(id) {
     try {
       const client = await initClient();
       const key = `student_${id}`;
-      const delAsync = promisify(client.del).bind(client);
-      const deleted = await delAsync(key);
+      const deleted = await client.del(key);
 
       if (!deleted) {
         console.error(`Student with id ${id} not found in Redis`);
@@ -76,18 +71,17 @@ class StudentService {
     }
   }
 
-  async modifyStudentById(id, updateStudent){
+  async modifyStudentById(id, updateStudent) {
     try {
       const client = await initClient();
       const key = `student_${id}`;
-      const getAsync = promisify(client.get).bind(key);
-      const student = await getAsync(key);
-      if(!student){
+      const student = await client.get(key);
+      if (!student) {
         console.error("Error getting student");
         return false;
       }
       const parsedStudent = JSON.parse(student);
-      const mergedStudent = {...parsedStudent,  ...updateStudent};
+      const mergedStudent = { ...parsedStudent, ...updateStudent };
       await client.set(key, JSON.stringify(mergedStudent));
       return mergedStudent;
     } catch (error) {

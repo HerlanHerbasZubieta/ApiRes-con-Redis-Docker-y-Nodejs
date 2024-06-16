@@ -2,8 +2,7 @@ const Student = require("../model/student.model");
 const initClient = require("./initClient");
 const { promisify } = require("util");
 const { hashPassword, comparePassword } = require("../common/bcrypt");
-const moment = require("moment");
-
+const generate = require("../jwt/generateJWT")
 class StudentService {
   async createStudent(student) {
     try {
@@ -12,7 +11,7 @@ class StudentService {
       const hashedPassword = await hashPassword(student.password);
       student.password = hashedPassword;
       student.id = id;
-      student.createdAt = moment(student.createdAt).format('YYYY-MM-DD HH:mm:ss');
+      student.createdAt = new Date().toISOString();
       const serializedStudent = JSON.stringify(student);
       await client.set(`student_${id}`, serializedStudent);
       return student;
@@ -90,11 +89,36 @@ class StudentService {
       }
       const parsedStudent = JSON.parse(student);
       const mergedStudent = { ...parsedStudent, ...updateStudent };
-      mergedStudent.updatedAt = moment(mergedStudent.updatedAt).format('YYYY-MM-DD HH:mm:ss');
+      mergedStudent.updatedAt = new Date().toISOString();
       await client.set(key, JSON.stringify(mergedStudent));
       return mergedStudent;
     } catch (error) {
       console.error("Error updating student", error);
+    }
+  }
+
+  async login(student) {
+    try {
+      const client = await initClient();
+      const key = `student_${student.id}`;
+      const getAsync = promisify(client.get).bind(client);
+      const bdStudent = await getAsync(key);
+
+      if(!bdStudent) {
+        console.error('Student not found');
+        return false;
+      }
+      const jsonStudent = JSON.parse(bdStudent);
+      const passwordMatch = await comparePassword(student.password, jsonStudent.password);
+
+      if(!passwordMatch) {
+        console.error('Invalid password');
+        return false;
+      }
+      const token = generate.generateJWT(jsonStudent);
+      return { data: jsonStudent,  token: token };
+    } catch (error) {
+      console.error("Error generate token", error);
     }
   }
 }

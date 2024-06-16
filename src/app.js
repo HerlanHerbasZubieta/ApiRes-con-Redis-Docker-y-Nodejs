@@ -1,7 +1,6 @@
 const express = require('express');
 const app = express();
-const { config } = require('dotenv')
-config()
+require('dotenv').config();
 const studentRouter = require('./controller/student.controller')
 
 app.use(express.json());

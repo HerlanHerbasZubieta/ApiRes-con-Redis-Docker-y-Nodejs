@@ -10,5 +10,5 @@ async function comparePassword(passwordPlano, passwordHasheado){
 
 module.exports = {
     hashPassword,
-    comparePassword
+    comparePassword,
 };

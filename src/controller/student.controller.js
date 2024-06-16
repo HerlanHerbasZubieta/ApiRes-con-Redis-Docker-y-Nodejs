@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const studentService = require("../service/student.service");
+const verify = require('../middleware/verifyJWT')
 
-router.get("/", async (req, res) => {
+router.get("/", verify.verifyJWT, async (req, res) => {
   try {
     const students = await studentService.getAllStudents();
     res.json(students);
@@ -22,7 +23,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', verify.verifyJWT, async (req, res) => {
   const studentId = req.params.id;
 
   try {
@@ -36,7 +37,7 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verify.verifyJWT, async (req, res) => {
   const studentId = req.params.id;
 
   try {
@@ -64,6 +65,25 @@ router.put('/:id', async (req, res) => {
   } catch (error) {
     res.status(500).json({error: error.message});
   }
+})
+
+router.post('/login', async (req, res) => {
+  const student = req.body;
+
+  try {
+    const dataStudent = await studentService.login(student);
+    console.log(dataStudent)
+    if(!dataStudent) {
+      return res.status(404).json({error: 'Data student not found'});
+    }
+    res.json(dataStudent);
+  } catch (error) {
+    res.status(500).json({error: error.message});
+  }
+})
+
+router.post('/protected-route', verify.verifyJWT, (req, res) => {
+  res.json({ message: 'You are authorized!!'})
 })
 
 module.exports = router;
